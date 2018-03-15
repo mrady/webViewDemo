@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.webkit.HttpAuthHandler;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
@@ -14,6 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
+
+    public static final String TAG = MainActivity.class.getSimpleName();
 
     WebView webView;
 
@@ -44,20 +47,23 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            Log.d(TAG, "onPageStarted() called with: url = [" + url + "]");
             super.onPageStarted(view, url, favicon);
         }
 
         @Override
         public void onPageFinished(WebView view, String url) {
+            Log.d(TAG, "onPageFinished() called with: url = [" + url + "]");
             super.onPageFinished(view, url);
         }
 
         @Override
         public void onLoadResource(WebView view, String url) {
+            Log.d(TAG, "onLoadResource() called with: url = [" + url + "]");
         }
 
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-
+            Log.d(TAG, "shouldOverrideUrlLoading() called with: url = [" + url + "]");
             Map<String, String> header = new HashMap<>();
             header.put("Authorization", TOKEN);
             webView.loadUrl(url, header);
