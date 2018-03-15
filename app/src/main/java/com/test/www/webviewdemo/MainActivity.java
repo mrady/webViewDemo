@@ -8,11 +8,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.webkit.HttpAuthHandler;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import okhttp3.OkHttpClient;
+import okhttp3.internal.Util;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -42,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     /*======================================================*/
+
     private class MyWebViewClient extends WebViewClient {
 
 
@@ -63,10 +68,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            Log.d(TAG, "shouldOverrideUrlLoading() called with: url = [" + url + "]");
             Map<String, String> header = new HashMap<>();
             header.put("Authorization", TOKEN);
-            webView.loadUrl(url, header);
+            view.loadUrl(url, header);
+            Log.d(TAG, "shouldOverrideUrlLoading() called with: url = [" + url + "],  header = [" + header + "]");
 
             return true;
         }
@@ -78,7 +83,50 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        @Override
+        public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+
+            Log.d(TAG, "shouldInterceptRequest() called with:  url = [" + request.getUrl().toString() + "]");
+
+            String url = request.getUrl().toString();
+            Map<String, String> header = new HashMap<>();
+            header.put("Authorization", TOKEN);
+//            view.loadUrl(url, header);
+
+            return getNewResponse(url);
+        }
     }
+
+
+    private WebResourceResponse getNewResponse(String url) {
+
+        try {
+            OkHttpClient httpClient = new OkHttpClient();
+
+            Log.d(TAG, "getNewResponse() called with: url = [" + url + "],  Authorization = [" + TOKEN + "]");
+            okhttp3.Request request = new okhttp3.Request.Builder()
+                    .url(url.trim())
+                    .addHeader("Authorization", TOKEN) // Example header
+                    .build();
+
+            okhttp3.Response response = httpClient.newCall(request).execute();
+
+            return new WebResourceResponse(
+                    null,
+                    response.header("content-encoding", "utf-8"),
+                    //response.header("Authorization", TOKEN),
+                    response.body().byteStream()
+            );
+
+        } catch (Exception e) {
+            return null;
+        }
+
+
+    }
+
+
     /*======================================================*/
 
 }
